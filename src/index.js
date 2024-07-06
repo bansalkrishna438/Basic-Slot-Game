@@ -1,15 +1,14 @@
-
 import * as PIXI from 'pixi.js'
-import { Loader } from '@pixi/loaders';
 
 // Constants for reel configuration
 const SYMBOL_SIZE = 80; // Size of each symbol
 const REEL_WIDTH = SYMBOL_SIZE * 2; // Width of the reel (we assume square symbols)
 const REEL_HEIGHT = SYMBOL_SIZE /2; // Height of the reel (3 symbols visible)
 const NUM_SYMBOLS = 5; // Number of symbols per reel
+const REEL_SPIN_SPEED = 1; // Speed of the reel spin animation
 
 // create a pixi application 
-
+let spinTimeOut;
 const app = new PIXI.Application({
     width:window.innerWidth,
     height:window.innerHeight,
@@ -90,6 +89,8 @@ spinButton.on('pointerdown',()=>{
     if(!isSpinning){
     setRandomSymbols(); // Set random symbols before spinning (replace with your logic)
     spinReels(); // Spin the reels
+    // spin reel spinning on clicking on spin button
+    app.ticker.start()
     }
 })
 app.stage.addChild(spinButton);
@@ -104,7 +105,12 @@ stopButton.eventMode ='static';
 stopButton.cursor = 'pointer';
 stopButton.on('pointerdown',()=>{
     console.log('button clicked!');
-    isSpinning = false
+    isSpinning = false;
+    // stop reel spinning on clicking on stop button
+    app.ticker.stop();
+    clearTimeout(spinTimeOut);
+    spinButton.eventMode = 'static';
+
 })
 app.stage.addChild(stopButton);
 
@@ -150,39 +156,35 @@ for (let i = 0; i < 5; i++) {
     reels.push(reel);
     reelContainer.addChild(reel);
 }
+
 function spinReels() {
     const spinDuration = 2000; // Duration of the spin animation in milliseconds
     const targetSymbolIndexes = [1, 1, 1, 1, 1]; // Example target symbol indexes for each reel
 
     let startTime = Date.now();
 
-    // Define the update function
-    function update() {
-        let elapsedTime = Date.now() - startTime;
-        let progress = Math.min(elapsedTime / spinDuration, 1); // Progress from 0 to 1
+    spinButton.eventMode = 'passive';
 
-        // Update each reel's symbols position based on progress
-        for (let i = 0; i < reels.length; i++) {
-            let reel = reels[i];
-            let targetIndex = targetSymbolIndexes[i];
-            reel.y = SYMBOL_SIZE *  progress + 100;
-        }
-
-        // Check if animation is complete
-        if (progress < 1 && isSpinning) {
-            requestAnimationFrame(update); // Continue animation
-        } else {
-            // Snap reels to exact positions
-            for (let reel of reels) {
-                reel.y = SYMBOL_SIZE * targetSymbolIndexes[reels.indexOf(reel)] + 20 ;
+    // create the updateSymbol function
+    function updateSymbols() {
+        for (let reel of reels) {
+            for (let symbol of reel.children) {
+                    symbol.texture = PIXI.Texture.from(gameSymbol[Math.floor(Math.random()* gameSymbol.length)]);
             }
-            console.log('Animation complete!');
-            isSpinning = false;
         }
     }
     isSpinning = true;
     // Start the animation
-    update();
+    app.ticker.add(() => {
+        updateSymbols();
+    });
+    spinTimeOut = setTimeout(stopReels,2000)
+    function stopReels() {
+        // Stop the animation loop and spinning flag
+        app.ticker.stop();
+        isSpinning = false;
+        spinButton.eventMode = 'static'
+    }
 }
 function setRandomSymbols() {
     for (let reel of reels) {
@@ -190,10 +192,13 @@ function setRandomSymbols() {
         let i = 0 ;
         for (let symbol of reel.children) {
             console.log(symbol);
-            // Replace with your logic to set random symbols
+
             symbol.texture = PIXI.Texture.from(gameSymbol[Math.floor(Math.random()* gameSymbol.length)]); 
-            i++;// Replace with actual symbol texture
+            i++;
         }
     }
 }
+
+// Function to update symbols on the reels
+
 

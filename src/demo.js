@@ -1,114 +1,57 @@
-// Create a Pixi Application
-const app = new PIXI.Application({ width: 400, height: 400 });
+// Custom shader code for reel spinning effect
+const reelSpinningFilterCode = ;
+
+// Create a custom filter class extending PIXI.Filter
+class ReelSpinningFilter extends PIXI.Filter {
+    constructor(speed = 1.0, offset = 0.0) {
+        super(undefined, reelSpinningFilterCode, {
+            uTime: { type: '1f', value: 0 },
+            uSpeed: { type: '1f', value: speed },
+            uOffset: { type: '1f', value: offset },
+        });
+        this.time = 0;
+        this.speed = speed;
+        this.offset = offset;
+    }
+
+    // Override apply method to update uniforms
+    apply(filterManager, input, output, clear) {
+        this.uniforms.uTime = this.time;
+        this.time += 0.05 * this.speed; // Adjust time increment based on speed
+        super.apply(filterManager, input, output, clear);
+    }
+}
+
+// Example usage:
+
+// Create PixiJS Application
+const app = new PIXI.Application({
+    width: 800,
+    height: 600,
+    backgroundColor: 0xAAAAAA,
+});
 document.body.appendChild(app.view);
 
-// Constants for reel configuration
-const SYMBOL_SIZE = 100; // Size of each symbol
-const REEL_WIDTH = SYMBOL_SIZE; // Width of the reel (we assume square symbols)
-const REEL_HEIGHT = SYMBOL_SIZE * 3; // Height of the reel (3 symbols visible)
-const NUM_SYMBOLS = 5; // Number of symbols per reel
+// Load an image or sprite sheet
+PIXI.Loader.shared.add('reel_image', 'path_to_your_reel_image.png').load(() => {
+    // Create a sprite
+    const sprite = new PIXI.Sprite(PIXI.Texture.from('reel_image'));
+    sprite.anchor.set(0.5);
+    sprite.x = app.screen.width / 2;
+    sprite.y = app.screen.height / 2;
 
-// Container to hold symbols for each reel
-const reels = [];
+    // Create a custom spinning filter
+    const spinningFilter = new ReelSpinningFilter(2.0, 0.0); // Adjust speed and offset as needed
 
-// Create a mask shape
-const maskShape = new PIXI.Graphics();
-maskShape.beginFill(0x000000); // Black color for mask
-maskShape.drawRect(0, 0, REEL_WIDTH, REEL_HEIGHT); // Rectangle covering the entire reel grid
-maskShape.endFill();
-maskShape.position.set(50, 50); // Adjust position as needed
+    // Apply the filter to the sprite
+    sprite.filters = [spinningFilter];
 
-// Create reels and symbols
-for (let i = 0; i < 3; i++) {
-    let reel = new PIXI.Container();
-    reel.x = i * REEL_WIDTH;
-    reel.y = 50; // Adjust vertical position as needed
+    // Add sprite to the stage
+    app.stage.addChild(sprite);
 
-    let symbols = [];
-
-    // Add symbols to the reel
-    for (let j = 0; j < NUM_SYMBOLS; j++) {
-        let symbol = new PIXI.Sprite(PIXI.Texture.WHITE); // Replace with actual symbol texture
-        symbol.width = SYMBOL_SIZE;
-        symbol.height = SYMBOL_SIZE;
-        symbol.y = j * SYMBOL_SIZE;
-        reel.addChild(symbol);
-        symbols.push(symbol);
-    }
-
-    reel.mask = maskShape; // Apply mask to reel container
-    reels.push({ container: reel, symbols: symbols });
-    app.stage.addChild(reel);
-}
-
-// Add mask shape to stage
-app.stage.addChild(maskShape);
-
-// Function to set random symbols on the reel grid
-function setRandomSymbols() {
-    for (let reel of reels) {
-        let randomIndex = Math.floor(Math.random() * NUM_SYMBOLS);
-        let symbol = reel.symbols[randomIndex];
-        symbol.texture = PIXI.Texture.WHITE; // Replace with actual random symbol texture
-    }
-}
-
-// Function to spin the reels
-function spinReels() {
-    const spinDuration = 3000; // Duration of the spin animation in milliseconds
-    const targetSymbolIndexes = [2, 4, 1]; // Example target symbol indexes for each reel
-
-    let startTime = Date.now();
-
-    // Disable spin button during spin
-    spinButton.disabled = true;
-
-    // Define the update function
-    function update() {
-        let elapsedTime = Date.now() - startTime;
-        let progress = Math.min(elapsedTime / spinDuration, 1); // Progress from 0 to 1
-
-        // Update each reel's symbols position based on progress
-        for (let i = 0; i < reels.length; i++) {
-            let reel = reels[i].container;
-            let targetIndex = targetSymbolIndexes[i];
-            reel.y = -SYMBOL_SIZE * targetIndex * progress;
-
-            // Add a random symbol when reaching the end
-            if (progress >= 1 && reel.y === -SYMBOL_SIZE * targetIndex) {
-                let randomIndex = Math.floor(Math.random() * NUM_SYMBOLS);
-                let symbol = reel.symbols[randomIndex];
-                symbol.texture = PIXI.Texture.WHITE; // Replace with actual random symbol texture
-            }
-        }
-
-        // Check if animation is complete
-        if (progress < 1) {
-            requestAnimationFrame(update); // Continue animation
-        } else {
-            // Snap reels to exact positions
-            for (let reel of reels) {
-                reel.container.y = -SYMBOL_SIZE * targetSymbolIndexes[reels.indexOf(reel)];
-            }
-            console.log('Animation complete!');
-            spinButton.disabled = false; // Enable spin button after animation
-        }
-    }
-
-    // Start the animation
-    update();
-}
-
-// Button to trigger the spin
-const spinButton = document.createElement('button');
-spinButton.textContent = 'Spin';
-spinButton.style.position = 'absolute';
-spinButton.style.top = '10px';
-spinButton.style.left = '10px';
-document.body.appendChild(spinButton);
-
-// Event listener for spin button click
-spinButton.addEventListener('click', () => {
-    setRandomSymbols(); // Set random symbols before spinning
-    spinReels(); // Spin the reels
+    // Animation loop
+    app.ticker.add(() => {
+        // Update the filter time
+        spinningFilter.apply(app.renderer, sprite, app.renderer.renderTexture.current);
+    });
 });

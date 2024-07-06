@@ -1,0 +1,13 @@
+Task for second round of Assessment for Pixi.JS Developer 
+1. Create a basic slot machine spinning mechanism for a Pixi.js project. - done
+2. Design the user interface (UI) elements, such as spin buttons and displays. - done
+3. Create a script to handle the slot machine's spinning and stopping behavior. - done
+4. Generate random symbol results for each reel when spinning starts. - done
+5. Ensure that the stopping position aligns with a specific symbol. - done
+6. After the reels stop, check if there are any winning combinations based on the symbols' 
+positions. Animate the winning symbol and add popup of winning.
+• Task Example:
+https://drive.google.com/file/d/1Nr449YwShzrR3vW2zVwbJsnSxE2lxrBq/view?usp=driv 
+e_link
+ Note : You can use these assets as well or import your own (sprites, textures, audio, 
+etc.) for the slot machine. https://assetstore.unity.com/packages/2d/texturesmaterials/rock-climber-slotgame-assets-50243
