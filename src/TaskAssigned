@@ -5,7 +5,7 @@ Task for second round of Assessment for Pixi.JS Developer
 4. Generate random symbol results for each reel when spinning starts. - done
 5. Ensure that the stopping position aligns with a specific symbol. - done
 6. After the reels stop, check if there are any winning combinations based on the symbols' 
-positions. Animate the winning symbol and add popup of winning.
+positions. Animate the winning symbol and add popup of winning. -done
 • Task Example:
 https://drive.google.com/file/d/1Nr449YwShzrR3vW2zVwbJsnSxE2lxrBq/view?usp=driv 
 e_link
